@@ -17,6 +17,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const resExchangeRate = document.getElementById("res-exchange-rate");
     const resFinalInr = document.getElementById("res-final-inr");
     
+    const downloadPdfBtn = document.getElementById("download-pdf-btn");
+    const pdfBtnText = document.getElementById("pdf-btn-text");
+    const pdfBtnSpinner = document.getElementById("pdf-btn-spinner");
+    
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
         
@@ -124,5 +128,37 @@ document.addEventListener("DOMContentLoaded", () => {
             minimumFractionDigits: 2, 
             maximumFractionDigits: 2 
         })}`;
+    }
+    
+    downloadPdfBtn.addEventListener("click", () => {
+        errorMessage.classList.add("hidden");
+        errorMessage.textContent = "";
+        
+        const totalAmountStr = document.getElementById("total_amount").value;
+        const leavesTakenStr = document.getElementById("leaves_taken").value;
+        const month = document.getElementById("month").value;
+        
+        if (!totalAmountStr || !leavesTakenStr || !month) {
+            showError("Please enter all required fields before downloading PDF.");
+            return;
+        }
+        
+        // Construct GET URL with parameters
+        const url = `/generate-pdf?total_amount=${encodeURIComponent(totalAmountStr)}&leaves_taken=${encodeURIComponent(leavesTakenStr)}&month=${encodeURIComponent(month)}`;
+        
+        // Trigger native download
+        window.location.href = url;
+    });
+    
+    function setPdfLoading(isLoading) {
+        if (isLoading) {
+            downloadPdfBtn.disabled = true;
+            pdfBtnText.classList.add("hidden");
+            pdfBtnSpinner.classList.remove("hidden");
+        } else {
+            downloadPdfBtn.disabled = false;
+            pdfBtnText.classList.remove("hidden");
+            pdfBtnSpinner.classList.add("hidden");
+        }
     }
 });

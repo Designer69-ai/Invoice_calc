@@ -384,3 +384,29 @@ footer {
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
+.btn-secondary {
+    background: #ffffff;
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+    margin-top: 1rem;
+}
+
+.btn-secondary:hover {
+    background: var(--primary-color);
+    color: #ffffff;
+}
+
+.btn-secondary:disabled {
+    background: #ffffff;
+    color: #a1a1aa;
+    border-color: #d4d4d8;
+    cursor: not-allowed;
+}
+
+.btn-icon {
+    vertical-align: middle;
+    margin-right: 8px;
+    display: inline-block;
+}
+
