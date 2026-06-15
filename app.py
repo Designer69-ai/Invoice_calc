@@ -69,11 +69,11 @@ def generate_reportlab_pdf(pdf_path, invoice_date_str, invoice_num, description,
         'InvoiceTitle',
         parent=styles['Normal'],
         fontName='Helvetica-Bold',
-        fontSize=20,
-        leading=24,
+        fontSize=18,
+        leading=22,
         textColor=colors.black,
-        alignment=0,
-        spaceAfter=15
+        alignment=1, # Centered title
+        spaceAfter=20
     )
     
     label_style = ParagraphStyle(
@@ -134,7 +134,7 @@ def generate_reportlab_pdf(pdf_path, invoice_date_str, invoice_num, description,
         ('BOTTOMPADDING', (0,0), (-1,-1), 10),
     ]))
     story.append(bill_table)
-    story.append(Spacer(1, 25))
+    story.append(Spacer(1, 20))
     
     # Line Items Table
     items_header_style = ParagraphStyle(
@@ -172,13 +172,16 @@ def generate_reportlab_pdf(pdf_path, invoice_date_str, invoice_num, description,
         alignment=2
     )
 
+    # Escape ampersands to prevent ReportLab parser XML error
+    esc_desc = description.replace("&", "&amp;")
+
     items_data = [
         [
             Paragraph("Description", items_header_style), 
             Paragraph("USD Amount", items_header_right_style)
         ],
         [
-            Paragraph(description, value_style), 
+            Paragraph(esc_desc, value_style), 
             Paragraph(f"USD {final_amount:,.2f}", items_value_right_style)
         ],
         [
@@ -191,13 +194,11 @@ def generate_reportlab_pdf(pdf_path, invoice_date_str, invoice_num, description,
         ]
     ]
     
-    items_table = Table(items_data, colWidths=[384, 120])
+    items_table = Table(items_data, colWidths=[350, 154])
     items_table.setStyle(TableStyle([
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-        ('LINEBELOW', (0,0), (-1,0), 1, colors.black),
-        ('LINEABOVE', (0,0), (-1,0), 1, colors.black),
-        ('LINEABOVE', (0,-1), (-1,-1), 1, colors.black),
-        ('LINEBELOW', (0,-1), (-1,-1), 1, colors.black),
+        ('GRID', (0,0), (-1,2), 0.5, colors.black),
+        ('GRID', (0,3), (1,3), 0.5, colors.black),
         ('TOPPADDING', (0,0), (-1,-1), 8),
         ('BOTTOMPADDING', (0,0), (-1,-1), 8),
     ]))
