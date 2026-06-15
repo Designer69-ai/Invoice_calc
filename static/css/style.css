@@ -1,0 +1,386 @@
+:root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f4f4f5;
+    --card-bg: #ffffff;
+    --card-border: #000000;
+    --text-primary: #000000;
+    --text-secondary: #52525b;
+    --primary-color: #000000;
+    --primary-hover: #27272a;
+    --danger-color: #000000;
+    --success-color: #000000;
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --radius: 0px;
+    --transition: all 0.1s ease-in-out;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 1rem;
+}
+
+.container {
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: left;
+    margin-bottom: 3rem;
+    border-bottom: 2px solid var(--card-border);
+    padding-bottom: 1.5rem;
+}
+
+#app-title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+}
+
+.accent-text {
+    color: var(--text-primary);
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+}
+
+/* Grid Layout */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 3rem;
+    margin-bottom: 3rem;
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+}
+
+/* Monochrome Cards */
+.card {
+    background: var(--card-bg);
+    border: 2px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 2rem;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--card-border);
+    padding-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+/* Form inputs styling */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+label {
+    display: block;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.required {
+    color: var(--text-primary);
+    font-weight: 800;
+}
+
+.input-helper {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    margin-top: 0.35rem;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-prefix {
+    position: absolute;
+    left: 12px;
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+input, select {
+    width: 100%;
+    background: #ffffff;
+    border: 2px solid var(--card-border);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    padding: 0.75rem;
+    font-size: 0.95rem;
+    font-family: var(--font-family);
+    transition: var(--transition);
+    outline: none;
+}
+
+.input-prefix + input {
+    padding-left: 2rem;
+}
+
+input:focus, select:focus {
+    background: var(--bg-secondary);
+}
+
+select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23000000'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+    padding-right: 2.5rem;
+}
+
+/* Monochrome buttons */
+.btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 0.9rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    border: 2px solid var(--primary-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: var(--transition);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: #ffffff;
+    color: #000000;
+    border-color: #000000;
+}
+
+.btn-primary:disabled {
+    background: #e4e4e7;
+    color: #a1a1aa;
+    border-color: #d4d4d8;
+    cursor: not-allowed;
+}
+
+/* Results Card styling */
+.placeholder-state {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 280px;
+    background: #ffffff;
+    border: 2px dashed var(--card-border);
+}
+
+.placeholder-content {
+    max-width: 280px;
+}
+
+.placeholder-content h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+}
+
+.placeholder-content p {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.result-content {
+    animation: fadeIn 0.15s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.breakdown-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.breakdown-item {
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.breakdown-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.breakdown-item .label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.breakdown-item .value {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.color-danger {
+    color: var(--text-primary);
+}
+
+.divider {
+    border: 0;
+    height: 2px;
+    background: var(--card-border);
+    margin: 1.5rem 0;
+}
+
+/* Total Section layout */
+.total-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.total-label {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.total-value {
+    font-size: 1.35rem;
+    font-weight: 700;
+}
+
+.usd-text {
+    color: var(--text-primary);
+}
+
+.inr-text {
+    color: var(--text-primary);
+    font-size: 1.75rem;
+    font-weight: 900;
+}
+
+.highlight-row {
+    border-top: 3px double var(--card-border);
+    padding-top: 1.25rem;
+}
+
+.rate-badge {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    background: var(--bg-secondary);
+    border: 2px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+    color: var(--text-primary);
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* Error Banner */
+.error-banner {
+    background: #ffffff;
+    border: 2px solid var(--card-border);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    padding: 0.75rem;
+    font-size: 0.85rem;
+    margin-top: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* Footer styling */
+footer {
+    text-align: left;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    border-top: 2px solid var(--card-border);
+    padding-top: 1.5rem;
+    margin-top: 3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    border-top-color: #000000;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}

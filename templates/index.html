@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Calculate professional invoices with real-time currency conversions and deductions.">
+    <title>Smart Invoice Calculator</title>
+    <!-- Outfit & Inter Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="/static/css/style.css?v=3">
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1 id="app-title">Smart <span class="accent-text">Invoice Calculator</span></h1>
+            <p class="subtitle">Calculate daily deductions and live USD to INR exchange rates</p>
+        </header>
+        
+        <div class="dashboard-grid">
+            <!-- Input Card -->
+            <section class="card glass-card input-card">
+                <h2 class="card-title">Invoice Details</h2>
+                <form id="calculator-form" novalidate>
+                    <div class="form-group">
+                        <label for="total_amount">Total Amount (USD) <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <span class="input-prefix">$</span>
+                            <input type="number" id="total_amount" name="total_amount" placeholder="e.g. 5000" min="0" step="any" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="leaves_taken">Leaves Taken (Days) <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <input type="number" id="leaves_taken" name="leaves_taken" placeholder="e.g. 1.5" min="0" step="0.5" required>
+                        </div>
+                        <span class="input-helper">Use 0.5 for half days, 1.0 for full days</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="month">Invoice Month <span class="required">*</span></label>
+                        <select id="month" name="month" required>
+                            <option value="" disabled selected>Select Month</option>
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" id="submit-btn" class="btn btn-primary">
+                        <span class="btn-text" id="btn-text">Calculate Invoice</span>
+                        <div class="spinner hidden" id="btn-spinner"></div>
+                    </button>
+                </form>
+                <div id="error-message" class="error-banner hidden"></div>
+            </section>
+            
+            <!-- Result Card -->
+            <section class="card glass-card result-card placeholder-state" id="result-section">
+                <div class="placeholder-content" id="placeholder-content">
+                    <h3>Invoice Summary Details</h3>
+                    <p>Enter invoice details and click calculate to view the breakdown and live exchange rate conversion.</p>
+                </div>
+                
+                <div class="result-content hidden" id="result-content">
+                    <h2 class="card-title">Breakdown</h2>
+                    
+                    <div class="breakdown-grid">
+                        <div class="breakdown-item">
+                            <span class="label">Total Working Days</span>
+                            <span class="value" id="res-working-days">-</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="label">Deduction Per Day</span>
+                            <span class="value" id="res-deduction-rate">-</span>
+                        </div>
+                        <div class="breakdown-item">
+                            <span class="label">Total Deduction</span>
+                            <span class="value color-danger" id="res-total-deduction">-</span>
+                        </div>
+                    </div>
+                    
+                    <hr class="divider">
+                    
+                    <div class="total-section">
+                        <div class="total-row">
+                            <span class="total-label">Final Amount (USD)</span>
+                            <span class="total-value usd-text" id="res-final-usd">-</span>
+                        </div>
+                        
+                        <div class="rate-badge">
+                            <span class="rate-text">Live Rate: <strong id="res-exchange-rate">-</strong> USD to INR</span>
+                        </div>
+                        
+                        <div class="total-row highlight-row">
+                            <span class="total-label">Final Amount (INR)</span>
+                            <span class="total-value inr-text" id="res-final-inr">-</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <footer>
+            <p>Smart Invoice Calculator &copy; 2026. Made with Flask and Vanilla CSS.</p>
+        </footer>
+    </div>
+    
+    <script src="/static/js/app.js?v=3"></script>
+</body>
+</html>
