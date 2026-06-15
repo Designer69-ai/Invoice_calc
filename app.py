@@ -53,6 +53,178 @@ def calculate_invoice():
     except Exception as e:
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
+def generate_reportlab_pdf(pdf_path, invoice_date_str, invoice_num, description, final_amount, leaves_taken):
+    from reportlab.lib.pagesizes import letter
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib import colors
+    
+    doc = SimpleDocTemplate(pdf_path, pagesize=letter, leftMargin=54, rightMargin=54, topMargin=54, bottomMargin=54)
+    story = []
+    
+    styles = getSampleStyleSheet()
+    
+    # Custom styles
+    title_style = ParagraphStyle(
+        'InvoiceTitle',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=20,
+        leading=24,
+        textColor=colors.black,
+        alignment=0,
+        spaceAfter=15
+    )
+    
+    label_style = ParagraphStyle(
+        'InvoiceLabel',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=10,
+        leading=12,
+    )
+    
+    value_style = ParagraphStyle(
+        'InvoiceValue',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=10,
+        leading=12,
+    )
+
+    bold_val_style = ParagraphStyle(
+        'InvoiceBoldValue',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=10,
+        leading=12,
+    )
+    
+    story.append(Paragraph("SERVICE INVOICE", title_style))
+    story.append(Spacer(1, 15))
+    
+    # Metadata Table
+    meta_data = [
+        [
+            Paragraph("Invoice Date:", label_style), 
+            Paragraph(invoice_date_str, value_style),
+            Paragraph("Invoice Number:", label_style),
+            Paragraph(invoice_num, bold_val_style)
+        ]
+    ]
+    meta_table = Table(meta_data, colWidths=[90, 110, 110, 194])
+    meta_table.setStyle(TableStyle([
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 10),
+    ]))
+    story.append(meta_table)
+    story.append(Spacer(1, 15))
+    
+    # Bill To Table
+    address_text = "<b>Jetmobile Pte Ltd</b><br/>168 Jalan Bukit Merah<br/>#4-08A Connection One Tower 3<br/>Singapore 150168"
+    bill_data = [
+        [
+            Paragraph("TO", label_style),
+            Paragraph(address_text, value_style)
+        ]
+    ]
+    bill_table = Table(bill_data, colWidths=[90, 414])
+    bill_table.setStyle(TableStyle([
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 10),
+    ]))
+    story.append(bill_table)
+    story.append(Spacer(1, 25))
+    
+    # Line Items Table
+    items_header_style = ParagraphStyle(
+        'ItemsHeader',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=10,
+        leading=12,
+    )
+    
+    items_header_right_style = ParagraphStyle(
+        'ItemsHeaderRight',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=10,
+        leading=12,
+        alignment=2
+    )
+    
+    items_value_right_style = ParagraphStyle(
+        'ItemsValueRight',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=10,
+        leading=12,
+        alignment=2
+    )
+
+    items_bold_right_style = ParagraphStyle(
+        'ItemsBoldRight',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=10,
+        leading=12,
+        alignment=2
+    )
+
+    items_data = [
+        [
+            Paragraph("Description", items_header_style), 
+            Paragraph("USD Amount", items_header_right_style)
+        ],
+        [
+            Paragraph(description, value_style), 
+            Paragraph(f"USD {final_amount:,.2f}", items_value_right_style)
+        ],
+        [
+            Paragraph("Off day (if any):", value_style), 
+            Paragraph(f"{leaves_taken}", items_value_right_style)
+        ],
+        [
+            Paragraph("Total", items_header_style), 
+            Paragraph(f"USD {final_amount:,.2f}", items_bold_right_style)
+        ]
+    ]
+    
+    items_table = Table(items_data, colWidths=[384, 120])
+    items_table.setStyle(TableStyle([
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('LINEBELOW', (0,0), (-1,0), 1, colors.black),
+        ('LINEABOVE', (0,0), (-1,0), 1, colors.black),
+        ('LINEABOVE', (0,-1), (-1,-1), 1, colors.black),
+        ('LINEBELOW', (0,-1), (-1,-1), 1, colors.black),
+        ('TOPPADDING', (0,0), (-1,-1), 8),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 8),
+    ]))
+    story.append(items_table)
+    story.append(Spacer(1, 40))
+    
+    # Signature block
+    sig_elements = []
+    if os.path.exists("Signature.png"):
+        sig_elements.append(Image("Signature.png", width=90, height=43))
+    else:
+        sig_elements.append(Paragraph("", value_style))
+        
+    sig_data = [
+        [Paragraph("Signature:", label_style), sig_elements[0]],
+        [Paragraph("Name:", label_style), Paragraph("Jaideep Singh Rajawat", value_style)]
+    ]
+    
+    sig_table = Table(sig_data, colWidths=[90, 414])
+    sig_table.setStyle(TableStyle([
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 10),
+    ]))
+    story.append(sig_table)
+    
+    doc.build(story)
+
 @app.route('/generate-pdf', methods=['GET', 'POST'])
 def generate_pdf_invoice():
     try:
@@ -88,11 +260,13 @@ def generate_pdf_invoice():
         from openpyxl.drawing.image import Image
         import io
         
+        # Check COM availability
+        use_reportlab = False
         try:
             import win32com.client
             import pythoncom
         except ImportError:
-            return jsonify({"error": "PDF generation requires a Microsoft Excel Windows environment and is not supported in Linux/Vercel hosting."}), 500
+            use_reportlab = True
         
         # Format Date and Invoice Number
         current_year = datetime.date.today().year
@@ -108,54 +282,70 @@ def generate_pdf_invoice():
         month_name = calendar.month_name[month]
         description = f"R&D Service for {month_name} {current_year}"
         
-        # Load and fill spreadsheet
-        wb = openpyxl.load_workbook("Service Invoice template - Monthly.xlsx")
-        sheet = wb["Invoice"]
-        
-        sheet["C5"] = invoice_date
-        sheet["E7"] = invoice_num_str
-        sheet["A18"] = description
-        sheet["E18"] = result["final_amount_usd"]
-        sheet["E19"] = leaves_taken
-        sheet["E21"] = result["final_amount_usd"]
-        
-        # Set name
-        sheet["B30"] = "Jaideep Singh Rajawat"
-        sheet["B30"].font = Font(name="Arial", size=12, bold=False)
-        
-        # Add Signature
-        if os.path.exists("Signature.png"):
-            img = Image("Signature.png")
-            img.width = 90
-            img.height = 43
-            sheet.add_image(img, "B28")
-        
-        # Save temp file
         unique_id = str(uuid.uuid4())
-        temp_xlsx = f"temp_invoice_{unique_id}.xlsx"
         temp_pdf = f"temp_invoice_{unique_id}.pdf"
-        wb.save(temp_xlsx)
         
-        # Convert to PDF using Excel COM
-        pythoncom.CoInitialize()
-        excel = win32com.client.Dispatch("Excel.Application")
-        excel.Visible = False
-        excel.DisplayAlerts = False
-        try:
-            abs_xlsx = os.path.abspath(temp_xlsx)
-            abs_pdf = os.path.abspath(temp_pdf)
-            wb_com = excel.Workbooks.Open(abs_xlsx)
-            ws_com = wb_com.Sheets("Invoice")
+        if not use_reportlab:
+            # Load and fill spreadsheet (only needed for COM conversion or xlsx saving)
+            wb = openpyxl.load_workbook("Service Invoice template - Monthly.xlsx")
+            sheet = wb["Invoice"]
             
-            ws_com.PageSetup.Zoom = False
-            ws_com.PageSetup.FitToPagesWide = 1
-            ws_com.PageSetup.FitToPagesTall = 1
+            sheet["C5"] = invoice_date
+            sheet["E7"] = invoice_num_str
+            sheet["A18"] = description
+            sheet["E18"] = result["final_amount_usd"]
+            sheet["E19"] = leaves_taken
+            sheet["E21"] = result["final_amount_usd"]
             
-            wb_com.ExportAsFixedFormat(0, abs_pdf)
-            wb_com.Close(SaveChanges=False)
-        finally:
-            excel.Quit()
-            pythoncom.CoUninitialize()
+            # Set name
+            sheet["B30"] = "Jaideep Singh Rajawat"
+            sheet["B30"].font = Font(name="Arial", size=12, bold=False)
+            
+            # Add Signature
+            if os.path.exists("Signature.png"):
+                img = Image("Signature.png")
+                img.width = 90
+                img.height = 43
+                sheet.add_image(img, "B28")
+            
+            temp_xlsx = f"temp_invoice_{unique_id}.xlsx"
+            wb.save(temp_xlsx)
+            
+            # Convert to PDF using Excel COM
+            try:
+                pythoncom.CoInitialize()
+                excel = win32com.client.Dispatch("Excel.Application")
+                excel.Visible = False
+                excel.DisplayAlerts = False
+                try:
+                    abs_xlsx = os.path.abspath(temp_xlsx)
+                    abs_pdf = os.path.abspath(temp_pdf)
+                    wb_com = excel.Workbooks.Open(abs_xlsx)
+                    ws_com = wb_com.Sheets("Invoice")
+                    
+                    ws_com.PageSetup.Zoom = False
+                    ws_com.PageSetup.FitToPagesWide = 1
+                    ws_com.PageSetup.FitToPagesTall = 1
+                    
+                    wb_com.ExportAsFixedFormat(0, abs_pdf)
+                    wb_com.Close(SaveChanges=False)
+                finally:
+                    excel.Quit()
+                    pythoncom.CoUninitialize()
+                
+                # Cleanup temp xlsx
+                try: os.remove(temp_xlsx)
+                except: pass
+                
+            except Exception as e:
+                # COM failed, clean up and fallback to ReportLab
+                try: os.remove(temp_xlsx)
+                except: pass
+                use_reportlab = True
+                
+        if use_reportlab:
+            # Generate PDF using ReportLab
+            generate_reportlab_pdf(temp_pdf, invoice_date_str, invoice_num_str, description, result["final_amount_usd"], leaves_taken)
             
         # Stream file to response
         if os.path.exists(temp_pdf):
@@ -163,9 +353,7 @@ def generate_pdf_invoice():
                 pdf_data = io.BytesIO(f.read())
             pdf_data.seek(0)
             
-            # Clean up temp files
-            try: os.remove(temp_xlsx)
-            except: pass
+            # Clean up temp file
             try: os.remove(temp_pdf)
             except: pass
             
