@@ -282,8 +282,10 @@ def generate_pdf_invoice():
         month_name = calendar.month_name[month]
         description = f"R&D Service for {month_name} {current_year}"
         
+        import tempfile
         unique_id = str(uuid.uuid4())
-        temp_pdf = f"temp_invoice_{unique_id}.pdf"
+        temp_dir = tempfile.gettempdir()
+        temp_pdf = os.path.join(temp_dir, f"temp_invoice_{unique_id}.pdf")
         
         if not use_reportlab:
             # Load and fill spreadsheet (only needed for COM conversion or xlsx saving)
@@ -308,7 +310,7 @@ def generate_pdf_invoice():
                 img.height = 43
                 sheet.add_image(img, "B28")
             
-            temp_xlsx = f"temp_invoice_{unique_id}.xlsx"
+            temp_xlsx = os.path.join(temp_dir, f"temp_invoice_{unique_id}.xlsx")
             wb.save(temp_xlsx)
             
             # Convert to PDF using Excel COM
