@@ -261,13 +261,21 @@ def generate_pdf_invoice():
         from openpyxl.drawing.image import Image
         import io
         
-        # Check COM availability
+        # Check environment variable for ConvertAPI
+        convertapi_secret = os.environ.get("CONVERTAPI_SECRET")
+        
+        # Decide renderer priority
+        use_convertapi = bool(convertapi_secret)
+        use_com = False
         use_reportlab = False
-        try:
-            import win32com.client
-            import pythoncom
-        except ImportError:
-            use_reportlab = True
+        
+        if not use_convertapi:
+            try:
+                import win32com.client
+                import pythoncom
+                use_com = True
+            except ImportError:
+                use_reportlab = True
         
         # Format Date and Invoice Number
         current_year = datetime.date.today().year
@@ -288,8 +296,8 @@ def generate_pdf_invoice():
         temp_dir = tempfile.gettempdir()
         temp_pdf = os.path.join(temp_dir, f"temp_invoice_{unique_id}.pdf")
         
-        if not use_reportlab:
-            # Load and fill spreadsheet (only needed for COM conversion or xlsx saving)
+        # If we use ConvertAPI or Excel COM, we must first build and save the populated Excel file
+        if use_convertapi or use_com:
             wb = openpyxl.load_workbook("Service Invoice template - Monthly.xlsx")
             sheet = wb["Invoice"]
             
@@ -300,11 +308,9 @@ def generate_pdf_invoice():
             sheet["E19"] = leaves_taken
             sheet["E21"] = result["final_amount_usd"]
             
-            # Set name
             sheet["B30"] = "Jaideep Singh Rajawat"
             sheet["B30"].font = Font(name="Arial", size=12, bold=False)
             
-            # Add Signature
             if os.path.exists("Signature.png"):
                 img = Image("Signature.png")
                 img.width = 90
@@ -314,36 +320,59 @@ def generate_pdf_invoice():
             temp_xlsx = os.path.join(temp_dir, f"temp_invoice_{unique_id}.xlsx")
             wb.save(temp_xlsx)
             
-            # Convert to PDF using Excel COM
-            try:
-                pythoncom.CoInitialize()
-                excel = win32com.client.Dispatch("Excel.Application")
-                excel.Visible = False
-                excel.DisplayAlerts = False
+            converted_ok = False
+            
+            # 1. Try ConvertAPI first if secret is configured
+            if use_convertapi:
                 try:
-                    abs_xlsx = os.path.abspath(temp_xlsx)
-                    abs_pdf = os.path.abspath(temp_pdf)
-                    wb_com = excel.Workbooks.Open(abs_xlsx)
-                    ws_com = wb_com.Sheets("Invoice")
-                    
-                    ws_com.PageSetup.Zoom = False
-                    ws_com.PageSetup.FitToPagesWide = 1
-                    ws_com.PageSetup.FitToPagesTall = 1
-                    
-                    wb_com.ExportAsFixedFormat(0, abs_pdf)
-                    wb_com.Close(SaveChanges=False)
-                finally:
-                    excel.Quit()
-                    pythoncom.CoUninitialize()
-                
-                # Cleanup temp xlsx
-                try: os.remove(temp_xlsx)
-                except: pass
-                
-            except Exception as e:
-                # COM failed, clean up and fallback to ReportLab
-                try: os.remove(temp_xlsx)
-                except: pass
+                    import convertapi
+                    convertapi.api_secret = convertapi_secret
+                    convert_result = convertapi.convert('pdf', { 'File': temp_xlsx })
+                    convert_result.save_files(temp_pdf)
+                    converted_ok = True
+                except Exception as e:
+                    print(f"ConvertAPI failed: {e}")
+                    # If ConvertAPI fails, we will try Excel COM if on Windows, otherwise ReportLab
+                    try:
+                        import win32com.client
+                        import pythoncom
+                        use_com = True
+                    except ImportError:
+                        use_reportlab = True
+            
+            # 2. Try Excel COM if COM is available and ConvertAPI was not used or failed
+            if use_com and not converted_ok:
+                try:
+                    pythoncom.CoInitialize()
+                    excel = win32com.client.Dispatch("Excel.Application")
+                    excel.Visible = False
+                    excel.DisplayAlerts = False
+                    try:
+                        abs_xlsx = os.path.abspath(temp_xlsx)
+                        abs_pdf = os.path.abspath(temp_pdf)
+                        wb_com = excel.Workbooks.Open(abs_xlsx)
+                        ws_com = wb_com.Sheets("Invoice")
+                        
+                        ws_com.PageSetup.Zoom = False
+                        ws_com.PageSetup.FitToPagesWide = 1
+                        ws_com.PageSetup.FitToPagesTall = 1
+                        
+                        wb_com.ExportAsFixedFormat(0, abs_pdf)
+                        wb_com.Close(SaveChanges=False)
+                        converted_ok = True
+                    finally:
+                        excel.Quit()
+                        pythoncom.CoUninitialize()
+                except Exception as e:
+                    print(f"Excel COM failed: {e}")
+                    use_reportlab = True
+            
+            # Cleanup the temporary spreadsheet
+            try: os.remove(temp_xlsx)
+            except: pass
+            
+            # If both failed, trigger ReportLab
+            if not converted_ok:
                 use_reportlab = True
                 
         if use_reportlab:
