@@ -302,6 +302,7 @@ def generate_pdf_invoice():
             sheet = wb["Invoice"]
             
             sheet["C5"] = invoice_date
+            sheet["C7"] = ""  # Clear the placeholder text 'InvYYYY-MMDD'
             sheet["E7"] = invoice_num_str
             sheet["A18"] = description
             sheet["E18"] = result["final_amount_usd"]
